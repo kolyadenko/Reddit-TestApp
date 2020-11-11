@@ -8,10 +8,15 @@
 import UIKit
 
 class ViewController: UIViewController {
+    
+    let service: RedditService = .init()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        service.fetchTopPosts(offset: 0, completionHandler: { listing, error in
+            print(listing)
+        })
     }
 
 
