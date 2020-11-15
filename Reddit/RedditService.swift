@@ -31,6 +31,7 @@ struct Post: Decodable {
     var data: PostData
     
     struct PostData: Decodable {
+        var id: String
         var authorFullname: String
         var subreddit: String?
         var title: String
@@ -40,7 +41,7 @@ struct Post: Decodable {
         
         enum CodingKeys: String, CodingKey {
             case authorFullname = "author_fullname"
-            case subreddit, title, thumbnail, created
+            case subreddit, title, thumbnail, created, id
             case comments = "num_comments"
         }
     }
