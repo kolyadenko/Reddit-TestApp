@@ -33,36 +33,20 @@ struct Post: Decodable {
     struct PostData: Decodable {
         var authorFullname: String
         var subreddit: String?
-        var title: String?
+        var title: String
         var thumbnail: URL?
-        var created: Date?
+        var created: Date
+        var comments: Int
         
         enum CodingKeys: String, CodingKey {
             case authorFullname = "author_fullname"
             case subreddit, title, thumbnail, created
+            case comments = "num_comments"
         }
     }
 }
 
 // MARK: Implementation
-enum CoercingError: Error {
-    case failedToInit
-}
-
-extension KeyedDecodingContainer {
-    func decodeCoercing<T: LosslessStringConvertible>(type: T.Type, forKey key: KeyedDecodingContainer.Key) throws -> T {
-        guard let value = T(try self.decode(String.self, forKey: key)) else { throw CoercingError.failedToInit }
-        return value
-    }
-}
-
-extension SingleValueDecodingContainer {
-    func decodeCoercing<T: LosslessStringConvertible>(type: T.Type) throws -> T {
-        guard let value = T(try self.decode(String.self)) else { throw CoercingError.failedToInit }
-        return value
-    }
-}
-
 class RedditService: ListingService {
     private let topListingURL = "https://www.reddit.com/top.json"
 
@@ -71,7 +55,7 @@ class RedditService: ListingService {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom({ (decoder) -> Date in
             let container = try decoder.singleValueContainer()
-            let dateDouble = try container.decodeCoercing(type: Double.self)
+            let dateDouble = try container.decode(Double.self)
             let date = Date(timeIntervalSince1970: dateDouble)
             return date
         })
