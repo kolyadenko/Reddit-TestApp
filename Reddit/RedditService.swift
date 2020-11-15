@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreData
 
 // MARK: Protocols
 protocol ListingService {
@@ -72,10 +73,53 @@ class RedditService: ListingService {
                 return
             }
             let listing = try? self.decoder.decode(Listing.self, from: data)
-            completionHandler(listing, error)
+            listing?.data.children.forEach({
+                self.configure(redditPost: RedditPost(context: persistentContainer.viewContext), usingPost: $0)
+            })
+            saveContext()
+            DispatchQueue.main.async {
+                completionHandler(listing, error)
+            }
         }
         dataTask.resume()
         return dataTask
+    }
+    
+    private func configure(redditPost: RedditPost, usingPost post: Post) {
+        let postData = post.data
+        let redditPost = RedditPost(context: persistentContainer.viewContext)
+        redditPost.id = postData.id
+        redditPost.authorFullname = postData.authorFullname
+        redditPost.comments = Int64(postData.comments)
+        redditPost.created = postData.created
+        redditPost.subreddit = postData.subreddit
+        redditPost.thumbnail = postData.thumbnail
+        redditPost.title = postData.title
+    }
+    
+    // MARK: - Core Data stack
+    lazy var persistentContainer: NSPersistentContainer = {
+        let container = NSPersistentContainer(name: "Model")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+        })
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        return container
+    }()
+
+    // MARK: - Core Data Saving support
+    func saveContext() {
+        let context = persistentContainer.viewContext
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                let nserror = error as NSError
+                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+            }
+        }
     }
 }
 
