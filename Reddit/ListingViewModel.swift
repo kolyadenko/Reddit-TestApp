@@ -21,18 +21,24 @@ class ListingViewModel {
 
         // Initialize Fetched Results Controller
         let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.service.coreDataManager.persistentContainer.viewContext, sectionNameKeyPath: nil, cacheName: nil)
-
+        try? fetchedResultsController.performFetch()
         return fetchedResultsController
     }()
-    
-    func fetchFresh(completionHandler: @escaping (Error?) -> Void) {
-        _ = service.fetchTopPosts(limit: 50, offset: 0) { (error) in
-            completionHandler(error)
-        }
-    }
-    
+
     func downloadThumbnail(at indexPath: IndexPath) {
         
+    }
+    
+    var tasks: [String: Cancellable] = [:]
+    
+    func fetchData(offset: IndexPath?, completionHandler: @escaping (Error?) -> Void) {
+        let beforeId = offset == nil ? nil : listingFetchedResultsController.object(at: offset!).id
+        let taskKey = beforeId ?? "fresh"
+        tasks[taskKey]?.cancel()
+        tasks[taskKey] = service.fetchTopPosts(limit: 50, before: beforeId, completionHandler: { [unowned self] (error) in
+            completionHandler(error)
+            self.tasks[taskKey] = nil
+        })
     }
     
     init(service: ListingService) {

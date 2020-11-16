@@ -20,6 +20,7 @@ class ListingViewController: UIViewController, ErrorHandler {
             tableView.dataSource = self
             tableView.refreshControl = UIRefreshControl()
             tableView.refreshControl?.addTarget(self, action: #selector(fetchFresh), for: .valueChanged)
+            tableView.prefetchDataSource = self
         }
     }
     var viewModel = ListingViewModel(service: RedditService())
@@ -31,10 +32,10 @@ class ListingViewController: UIViewController, ErrorHandler {
     
     @objc
     func fetchFresh() {
-        viewModel.fetchFresh(completionHandler: { [unowned self] error in
+        viewModel.fetchData(offset: nil) { [unowned self] (error) in
             self.handle(error: error, retryBlock: { [unowned self] in self.fetchFresh() })
-            performFetch()
-        })
+            self.performFetch()
+        }
     }
     
     func performFetch() {
@@ -56,6 +57,7 @@ extension ListingViewController: UITableViewDataSource, UITableViewDelegate {
         }
 
         let sectionInfo = sections[section]
+        print(sectionInfo.numberOfObjects)
         return sectionInfo.numberOfObjects
     }
     
@@ -71,6 +73,21 @@ extension ListingViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
+    }
+}
+
+extension ListingViewController: UITableViewDataSourcePrefetching {
+    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
+        let maxIndexPath = indexPaths.max() ?? IndexPath(row: 0, section: 0)
+        let numberOfRows = self.tableView(tableView, numberOfRowsInSection: maxIndexPath.section)
+        if numberOfRows - 1 == indexPaths.max()?.row {
+            viewModel.fetchData(offset: maxIndexPath, completionHandler: { [unowned self] error in
+                self.performFetch()
+                DispatchQueue.main.async {
+                    self.handle(error: error, retryBlock: nil)
+                }
+            })
+        }
     }
 }
 
