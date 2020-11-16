@@ -29,13 +29,12 @@ class ListingViewModel {
         
     }
     
-    var tasks: [String: Cancellable] = [:]
+    var tasks: [Int: Cancellable] = [:]
     
-    func fetchData(offset: IndexPath?, completionHandler: @escaping (Error?) -> Void) {
-        let beforeId = offset == nil ? nil : listingFetchedResultsController.object(at: offset!).id
-        let taskKey = beforeId ?? "fresh"
+    func fetchData(offset: Int, completionHandler: @escaping (Error?) -> Void) {
+        let taskKey = offset
         tasks[taskKey]?.cancel()
-        tasks[taskKey] = service.fetchTopPosts(limit: 50, before: beforeId, completionHandler: { [unowned self] (error) in
+        tasks[taskKey] = service.fetchTopPosts(count: taskKey, completionHandler: { [unowned self] (error) in
             completionHandler(error)
             self.tasks[taskKey] = nil
         })

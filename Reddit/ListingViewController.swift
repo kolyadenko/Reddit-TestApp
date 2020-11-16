@@ -32,21 +32,23 @@ class ListingViewController: UIViewController, ErrorHandler {
     
     @objc
     func fetchFresh() {
-        viewModel.fetchData(offset: nil) { [unowned self] (error) in
+        viewModel.fetchData(offset: 0) { [unowned self] (error) in
             self.handle(error: error, retryBlock: { [unowned self] in self.fetchFresh() })
             self.performFetch()
         }
     }
     
     func performFetch() {
-        do {
-            try viewModel.listingFetchedResultsController.performFetch()
-        } catch {
-            let fetchError = error as NSError
-            print("\(fetchError), \(fetchError.localizedDescription)")
+        DispatchQueue.main.async {
+            do {
+                try self.viewModel.listingFetchedResultsController.performFetch()
+            } catch {
+                let fetchError = error as NSError
+                print("\(fetchError), \(fetchError.localizedDescription)")
+            }
+            self.tableView.refreshControl?.endRefreshing()
+            self.tableView.reloadData()
         }
-        self.tableView.refreshControl?.endRefreshing()
-        self.tableView.reloadData()
     }
 }
 
@@ -57,7 +59,6 @@ extension ListingViewController: UITableViewDataSource, UITableViewDelegate {
         }
 
         let sectionInfo = sections[section]
-        print(sectionInfo.numberOfObjects)
         return sectionInfo.numberOfObjects
     }
     
@@ -80,11 +81,10 @@ extension ListingViewController: UITableViewDataSourcePrefetching {
     func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
         let maxIndexPath = indexPaths.max() ?? IndexPath(row: 0, section: 0)
         let numberOfRows = self.tableView(tableView, numberOfRowsInSection: maxIndexPath.section)
-        if numberOfRows - 1 == indexPaths.max()?.row {
-            viewModel.fetchData(offset: maxIndexPath, completionHandler: { [unowned self] error in
-                self.performFetch()
+        if numberOfRows - 1 == maxIndexPath.row {
+            viewModel.fetchData(offset: maxIndexPath.row, completionHandler: { [unowned self] error in
                 DispatchQueue.main.async {
-                    self.handle(error: error, retryBlock: nil)
+                    self.performFetch()
                 }
             })
         }

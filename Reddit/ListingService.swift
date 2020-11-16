@@ -12,7 +12,7 @@ import CoreData
 protocol ListingService {
     typealias ListingFetchCompletionHandler = (Error?) -> Void
     
-    func fetchTopPosts(limit: Int, before: String?, completionHandler: @escaping ListingFetchCompletionHandler) -> Cancellable?
+    func fetchTopPosts(count: Int?, completionHandler: @escaping ListingFetchCompletionHandler) -> Cancellable?
     func observeListingChanges(with block: @escaping NoArgumentsVoidBlock)
     var coreDataManager: CoreDataManager { get }
 }
@@ -27,6 +27,7 @@ struct Listing: Decodable {
 
     struct ListingData: Decodable {
         var children: [Post]
+        var after: String?
     }
 }
 

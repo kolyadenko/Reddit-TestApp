@@ -23,7 +23,7 @@ class RedditService: ListingService {
     }
     
     // MARK: Props
-    private let topListingURL = "https://www.reddit.com/top.json"
+    private let topListingURL = "https://www.reddit.com/new.json"
     private var session: URLSession = .shared
     var coreDataManager: CoreDataManager = .init()
     let notificationCenter = NotificationCenter.default
@@ -39,10 +39,9 @@ class RedditService: ListingService {
     }()
     
     // MARK: Implementation
-    func fetchTopPosts(limit: Int, before: String?, completionHandler: @escaping ListingFetchCompletionHandler) -> Cancellable? {
-        let destinationURLString = before == nil ? topListingURL : "\(topListingURL)?before=t3_\(before!)"
+    func fetchTopPosts(count: Int?, completionHandler: @escaping ListingFetchCompletionHandler) -> Cancellable? {
+        let destinationURLString = count == nil ? topListingURL : "\(topListingURL)?count=\(count!)"
         guard let url = URL(string: destinationURLString) else { return nil }
-        print(url)
         let request = URLRequest(url: url)
         let dataTask = session.dataTask(with: request) { [unowned self] (data, response, error) in
             guard let data = data else {
@@ -54,7 +53,6 @@ class RedditService: ListingService {
             listing?.data.children.forEach({
                 self.configure(redditPost: RedditPost(context: backgroundContext), usingPost: $0, context: backgroundContext)
             })
-            print(listing)
             coreDataManager.saveContext(context: backgroundContext)
             DispatchQueue.main.async {
                 completionHandler(error)
