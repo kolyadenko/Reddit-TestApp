@@ -7,9 +7,11 @@
 
 import Foundation
 import CoreData
+import UIKit
 
 class ListingViewModel {
     var service: ListingService
+    let imageCache = NSCache<NSString, UIImage>()
     
     lazy var listingFetchedResultsController: NSFetchedResultsController<RedditPost> = {
         // Initialize Fetch Request
@@ -24,9 +26,29 @@ class ListingViewModel {
         try? fetchedResultsController.performFetch()
         return fetchedResultsController
     }()
-
-    func downloadThumbnail(at indexPath: IndexPath) {
-        
+    
+    private var thumbnailDownloadTasks: [String: Cancellable] = [:]
+    func downloadThumbnail(at url: URL, completionHandler: @escaping (UIImage?) -> Void) {
+        if let cachedImage = imageCache.object(forKey: url.absoluteString as NSString) {
+            completionHandler(cachedImage)
+        } else {
+            thumbnailDownloadTasks[url.absoluteString] = service.downloadData(at: url) { [unowned self] (data, error) in
+                if let data = data, let image = UIImage(data: data) {
+                    imageCache.setObject(image, forKey: url.absoluteString as NSString)
+                    DispatchQueue.main.async {
+                        completionHandler(image)
+                    }
+                }
+            }
+        }
+    }
+    
+    func image(at url: URL) -> UIImage? {
+        return imageCache.object(forKey: url.absoluteString as NSString)
+    }
+    
+    func cancelThumbnailDownloading(at url: URL) {
+        thumbnailDownloadTasks[url.absoluteString]?.cancel()
     }
     
     var tasks: [Int: Cancellable] = [:]

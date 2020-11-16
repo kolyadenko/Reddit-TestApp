@@ -13,6 +13,7 @@ protocol ListingService {
     typealias ListingFetchCompletionHandler = (Error?) -> Void
     
     func fetchTopPosts(count: Int?, completionHandler: @escaping ListingFetchCompletionHandler) -> Cancellable?
+    func downloadData(at url: URL, completionHandler: @escaping (Data?, Error?) -> Void) -> Cancellable
     func observeListingChanges(with block: @escaping NoArgumentsVoidBlock)
     var coreDataManager: CoreDataManager { get }
 }

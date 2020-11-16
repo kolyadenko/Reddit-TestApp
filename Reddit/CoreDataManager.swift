@@ -20,6 +20,10 @@ class CoreDataManager {
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return container
     }()
+    
+    lazy var backgroundContext: NSManagedObjectContext = {
+        return persistentContainer.newBackgroundContext()
+    }()
 
     // MARK: - Core Data Saving support
     func saveContext(context: NSManagedObjectContext?) {

@@ -49,7 +49,7 @@ class RedditService: ListingService {
                 return
             }
             let listing = try? self.decoder.decode(Listing.self, from: data)
-            let backgroundContext = coreDataManager.persistentContainer.newBackgroundContext()
+            let backgroundContext = coreDataManager.backgroundContext
             listing?.data.children.forEach({
                 self.configure(redditPost: RedditPost(context: backgroundContext), usingPost: $0, context: backgroundContext)
             })
@@ -57,6 +57,15 @@ class RedditService: ListingService {
             DispatchQueue.main.async {
                 completionHandler(error)
             }
+        }
+        dataTask.resume()
+        return dataTask
+    }
+    
+    func downloadData(at url: URL, completionHandler: @escaping (Data?, Error?) -> Void) -> Cancellable {
+        let request = URLRequest(url: url)
+        let dataTask = session.dataTask(with: request) { (data, response, error) in
+            completionHandler(data, error)
         }
         dataTask.resume()
         return dataTask

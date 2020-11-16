@@ -24,6 +24,9 @@ class ListingViewController: UIViewController, ErrorHandler {
         }
     }
     var viewModel = ListingViewModel(service: RedditService())
+    lazy var imageDownloadDebouncer = Debouncer(delay: 0.3) {
+        self.tableView.reloadData()
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,12 +43,7 @@ class ListingViewController: UIViewController, ErrorHandler {
     
     func performFetch() {
         DispatchQueue.main.async {
-            do {
-                try self.viewModel.listingFetchedResultsController.performFetch()
-            } catch {
-                let fetchError = error as NSError
-                print("\(fetchError), \(fetchError.localizedDescription)")
-            }
+            try? self.viewModel.listingFetchedResultsController.performFetch()
             self.tableView.refreshControl?.endRefreshing()
             self.tableView.reloadData()
         }
@@ -68,8 +66,24 @@ extension ListingViewController: UITableViewDataSource, UITableViewDelegate {
         cell.postedByTitle.text = item.authorFullname
         cell.nameLabel.text = item.title
         cell.commentsLabel.text = "\(item.comments) Comments"
-        viewModel.downloadThumbnail(at: indexPath)
+        cell.thumbnailImageView.image = nil
+        if let url = item.thumbnail {
+            if let imageAtURL = viewModel.image(at: url) {
+                cell.thumbnailImageView.image = imageAtURL
+            } else {
+                viewModel.downloadThumbnail(at: url, completionHandler: { image in
+                    self.imageDownloadDebouncer.call()
+                })
+            }
+        }
+        
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        let item = viewModel.listingFetchedResultsController.object(at: indexPath)
+        guard let url = item.thumbnail else { return }
+        viewModel.cancelThumbnailDownloading(at: url)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -134,5 +148,26 @@ extension UIAlertController {
         }))
         
         return alert
+    }
+}
+
+class Debouncer {
+    var callback: NoArgumentsVoidBlock
+    var delay: Double
+    weak var timer: Timer?
+    
+    init(delay: Double, callback: @escaping NoArgumentsVoidBlock) {
+        self.delay = delay
+        self.callback = callback
+    }
+    
+    func call() {
+        timer?.invalidate()
+        let nextTimer = Timer.scheduledTimer(timeInterval: delay, target: self, selector: #selector(Debouncer.fireNow), userInfo: nil, repeats: false)
+        timer = nextTimer
+    }
+    
+    @objc func fireNow() {
+        self.callback()
     }
 }
