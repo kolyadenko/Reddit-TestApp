@@ -6,12 +6,14 @@
 //
 
 import Foundation
+import CoreData
 
 // MARK: Protocols
 protocol ListingService {
     typealias ListingFetchCompletionHandler = (Listing?, Error?) -> Void
-
+    
     func fetchTopPosts(limit: Int, offset: Int, completionHandler: @escaping ListingFetchCompletionHandler) -> Cancellable?
+    var coreDataManager: CoreDataManager { get }
 }
 
 protocol Cancellable {

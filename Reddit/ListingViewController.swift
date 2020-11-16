@@ -8,7 +8,7 @@
 import UIKit
 import CoreData
 
-class ListingViewController: UIViewController {
+class ListingViewController: UIViewController, ErrorHandler {
     var items: [Post.PostData] = [] {
         didSet {
             tableView.reloadData()
@@ -18,35 +18,59 @@ class ListingViewController: UIViewController {
         didSet {
             tableView.delegate = self
             tableView.dataSource = self
+            tableView.refreshControl = UIRefreshControl()
+            tableView.refreshControl?.addTarget(self, action: #selector(fetchFresh), for: .valueChanged)
         }
     }
-    let service: RedditService = .init()
+    var viewModel = ListingViewModel(service: RedditService())
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        service.fetchTopPosts(offset: 0, completionHandler: { listing, error in
-            self.items = listing?.data.children.compactMap({ $0.data }) ?? []
+        fetchFresh()
+    }
+    
+    @objc
+    func fetchFresh() {
+        viewModel.fetchFresh(completionHandler: { [unowned self] error in
+            self.handle(error: error, retryBlock: { [unowned self] in self.fetchFresh() })
+            performFetch()
         })
+    }
+    
+    func performFetch() {
+        do {
+            try viewModel.listingFetchedResultsController.performFetch()
+        } catch {
+            let fetchError = error as NSError
+            print("\(fetchError), \(fetchError.localizedDescription)")
+        }
+        self.tableView.refreshControl?.endRefreshing()
+        self.tableView.reloadData()
     }
 }
 
 class ListingViewModel {
     var service: ListingService
     
-//    fileprivate lazy var fetchedResultsController: NSFetchedResultsController<RedditPost> = {
-//        // Initialize Fetch Request
-//        let fetchRequest: NSFetchRequest<RedditPost> = Note.fetchRequest()
-//
-//        // Add Sort Descriptors
-//        let sortDescriptor = NSSortDescriptor(key: "created", ascending: true)
-//        fetchRequest.sortDescriptors = [sortDescriptor]
-//
-//        // Initialize Fetched Results Controller
-//        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.coreDataManager.managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
-//
-//        return fetchedResultsController
-//    }()
+    lazy var listingFetchedResultsController: NSFetchedResultsController<RedditPost> = {
+        // Initialize Fetch Request
+        let fetchRequest: NSFetchRequest<RedditPost> = RedditPost.fetchRequest()
+
+        // Add Sort Descriptors
+        let sortDescriptor = NSSortDescriptor(key: "created", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+
+        // Initialize Fetched Results Controller
+        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.service.coreDataManager.persistentContainer.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+
+        return fetchedResultsController
+    }()
+    
+    func fetchFresh(completionHandler: @escaping (Error?) -> Void) {
+        service.fetchTopPosts(limit: 50, offset: 0) { (listing, error) in
+            completionHandler(error)
+        }
+    }
     
     init(service: ListingService) {
         self.service = service
@@ -55,11 +79,17 @@ class ListingViewModel {
 
 extension ListingViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
+        guard let sections = viewModel.listingFetchedResultsController.sections else {
+            return 0
+        }
+
+        let sectionInfo = sections[section]
+        return sectionInfo.numberOfObjects
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let item = items[indexPath.row]
+        let item = viewModel.listingFetchedResultsController.object(at: indexPath)
+        print(item)
         let cell = tableView.dequeueReusableCell(withIdentifier: "RedditPostTableViewCell", for: indexPath) as! RedditPostTableViewCell
         cell.postedByTitle.text = item.authorFullname
         cell.nameLabel.text = item.title
@@ -77,4 +107,42 @@ class RedditPostTableViewCell: UITableViewCell {
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var commentsLabel: UILabel!
     @IBOutlet weak var thumbnailImageView: UIImageView!
+}
+
+typealias NoArgumentsVoidBlock = () -> Void
+
+protocol ErrorHandler: class {
+    func handle(error: Error?, retryBlock: NoArgumentsVoidBlock?)
+}
+
+extension ErrorHandler {
+    func handle(error: Error?, retryBlock: NoArgumentsVoidBlock?) {
+        guard let error = error else { return }
+        guard let alert = UIAlertController.alert(withError: error, retryHandler: retryBlock, cancelHandler: nil) else { return }
+        (self as? UIViewController)?.present(alert, animated: true, completion: nil)
+    }
+}
+
+extension UIAlertController {
+    static func alert(from error: Error, withTitle title: String? = nil) -> UIAlertController {
+        let alert = UIAlertController(title: title ?? "Error", message: error.localizedDescription, preferredStyle: .alert)
+        return alert
+    }
+    
+    static func alert(withError error: Error?, title: String? = "Error", retryHandler: NoArgumentsVoidBlock?, cancelHandler: NoArgumentsVoidBlock?) -> UIAlertController? {
+        guard let error = error else { return nil }
+        let alert = UIAlertController.alert(from: error)
+        
+        if retryHandler != nil {
+            alert.addAction(UIAlertAction(title: "Retry", style: .default, handler: { (_) in
+                retryHandler?()
+            }))
+        }
+        
+        alert.addAction(UIAlertAction(title: retryHandler == nil ? "OK" : "Cancel", style: .cancel, handler: { (_) in
+            cancelHandler?()
+        }))
+        
+        return alert
+    }
 }
