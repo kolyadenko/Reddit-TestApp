@@ -73,10 +73,11 @@ class RedditService: ListingService {
                 return
             }
             let listing = try? self.decoder.decode(Listing.self, from: data)
+            let backgroundContext = persistentContainer.newBackgroundContext()
             listing?.data.children.forEach({
-                self.configure(redditPost: RedditPost(context: persistentContainer.viewContext), usingPost: $0)
+                self.configure(redditPost: RedditPost(context: persistentContainer.viewContext), usingPost: $0, context: backgroundContext)
             })
-            saveContext()
+            saveContext(context: backgroundContext)
             DispatchQueue.main.async {
                 completionHandler(listing, error)
             }
@@ -85,9 +86,9 @@ class RedditService: ListingService {
         return dataTask
     }
     
-    private func configure(redditPost: RedditPost, usingPost post: Post) {
+    private func configure(redditPost: RedditPost, usingPost post: Post, context: NSManagedObjectContext) {
         let postData = post.data
-        let redditPost = RedditPost(context: persistentContainer.viewContext)
+        let redditPost = RedditPost(context: context)
         redditPost.id = postData.id
         redditPost.authorFullname = postData.authorFullname
         redditPost.comments = Int64(postData.comments)
@@ -110,14 +111,17 @@ class RedditService: ListingService {
     }()
 
     // MARK: - Core Data Saving support
-    func saveContext() {
-        let context = persistentContainer.viewContext
+    func saveContext(context: NSManagedObjectContext?) {
+        let context = context ?? persistentContainer.viewContext
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+            context.perform {
+                do {
+                    try context.save()
+                } catch {
+                    let nserror = error as NSError
+                    fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+                }
             }
         }
     }
