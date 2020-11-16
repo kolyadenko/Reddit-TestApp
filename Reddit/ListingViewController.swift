@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreData
 
 class ListingViewController: UIViewController {
     var items: [Post.PostData] = [] {
@@ -27,6 +28,28 @@ class ListingViewController: UIViewController {
         service.fetchTopPosts(offset: 0, completionHandler: { listing, error in
             self.items = listing?.data.children.compactMap({ $0.data }) ?? []
         })
+    }
+}
+
+class ListingViewModel {
+    var service: ListingService
+    
+//    fileprivate lazy var fetchedResultsController: NSFetchedResultsController<RedditPost> = {
+//        // Initialize Fetch Request
+//        let fetchRequest: NSFetchRequest<RedditPost> = Note.fetchRequest()
+//
+//        // Add Sort Descriptors
+//        let sortDescriptor = NSSortDescriptor(key: "created", ascending: true)
+//        fetchRequest.sortDescriptors = [sortDescriptor]
+//
+//        // Initialize Fetched Results Controller
+//        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.coreDataManager.managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
+//
+//        return fetchedResultsController
+//    }()
+    
+    init(service: ListingService) {
+        self.service = service
     }
 }
 
