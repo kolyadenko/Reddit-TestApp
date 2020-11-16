@@ -49,34 +49,6 @@ class ListingViewController: UIViewController, ErrorHandler {
     }
 }
 
-class ListingViewModel {
-    var service: ListingService
-    
-    lazy var listingFetchedResultsController: NSFetchedResultsController<RedditPost> = {
-        // Initialize Fetch Request
-        let fetchRequest: NSFetchRequest<RedditPost> = RedditPost.fetchRequest()
-
-        // Add Sort Descriptors
-        let sortDescriptor = NSSortDescriptor(key: "created", ascending: true)
-        fetchRequest.sortDescriptors = [sortDescriptor]
-
-        // Initialize Fetched Results Controller
-        let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.service.coreDataManager.persistentContainer.viewContext, sectionNameKeyPath: nil, cacheName: nil)
-
-        return fetchedResultsController
-    }()
-    
-    func fetchFresh(completionHandler: @escaping (Error?) -> Void) {
-        service.fetchTopPosts(limit: 50, offset: 0) { (listing, error) in
-            completionHandler(error)
-        }
-    }
-    
-    init(service: ListingService) {
-        self.service = service
-    }
-}
-
 extension ListingViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let sections = viewModel.listingFetchedResultsController.sections else {
@@ -89,11 +61,11 @@ extension ListingViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let item = viewModel.listingFetchedResultsController.object(at: indexPath)
-        print(item)
         let cell = tableView.dequeueReusableCell(withIdentifier: "RedditPostTableViewCell", for: indexPath) as! RedditPostTableViewCell
         cell.postedByTitle.text = item.authorFullname
         cell.nameLabel.text = item.title
         cell.commentsLabel.text = "\(item.comments) Comments"
+        viewModel.downloadThumbnail(at: indexPath)
         return cell
     }
     
@@ -109,6 +81,7 @@ class RedditPostTableViewCell: UITableViewCell {
     @IBOutlet weak var thumbnailImageView: UIImageView!
 }
 
+// MARK: Extensions
 typealias NoArgumentsVoidBlock = () -> Void
 
 protocol ErrorHandler: class {

@@ -10,11 +10,23 @@ import CoreData
 
 // MARK: Implementation
 class RedditService: ListingService {
+    // MARK: Init
+    private var observers: [NSObjectProtocol] = []
+    init() {
+        observers.append(notificationCenter.addObserver(forName: NSNotification.Name.NSManagedObjectContextDidSave, object: nil, queue: nil) { (notification) in
+            self.listingChangesBlock?()
+        })
+    }
+    
+    deinit {
+        observers.forEach({ notificationCenter.removeObserver($0) })
+    }
     
     // MARK: Props
     private let topListingURL = "https://www.reddit.com/top.json"
     private var session: URLSession = .shared
     var coreDataManager: CoreDataManager = .init()
+    let notificationCenter = NotificationCenter.default
     private var decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom({ (decoder) -> Date in
@@ -32,7 +44,7 @@ class RedditService: ListingService {
         let request = URLRequest(url: url)
         let dataTask = session.dataTask(with: request) { [unowned self] (data, response, error) in
             guard let data = data else {
-                completionHandler(nil, error)
+                completionHandler(error)
                 return
             }
             let listing = try? self.decoder.decode(Listing.self, from: data)
@@ -42,11 +54,16 @@ class RedditService: ListingService {
             })
             coreDataManager.saveContext(context: backgroundContext)
             DispatchQueue.main.async {
-                completionHandler(listing, error)
+                completionHandler(error)
             }
         }
         dataTask.resume()
         return dataTask
+    }
+    
+    private var listingChangesBlock: NoArgumentsVoidBlock?
+    func observeListingChanges(with block: @escaping NoArgumentsVoidBlock) {
+        self.listingChangesBlock = block
     }
     
     // MARK: Private funcs

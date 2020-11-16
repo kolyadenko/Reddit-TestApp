@@ -10,9 +10,10 @@ import CoreData
 
 // MARK: Protocols
 protocol ListingService {
-    typealias ListingFetchCompletionHandler = (Listing?, Error?) -> Void
+    typealias ListingFetchCompletionHandler = (Error?) -> Void
     
     func fetchTopPosts(limit: Int, offset: Int, completionHandler: @escaping ListingFetchCompletionHandler) -> Cancellable?
+    func observeListingChanges(with block: @escaping NoArgumentsVoidBlock)
     var coreDataManager: CoreDataManager { get }
 }
 
