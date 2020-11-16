@@ -16,7 +16,7 @@ extension RedditPost {
         return NSFetchRequest<RedditPost>(entityName: "RedditPost")
     }
 
-    @NSManaged public var authorFullname: String?
+    @NSManaged public var author: String?
     @NSManaged public var comments: Int64
     @NSManaged public var created: Date?
     @NSManaged public var id: String?

@@ -37,7 +37,7 @@ struct Post: Decodable {
     
     struct PostData: Decodable {
         var id: String
-        var authorFullname: String
+        var author: String
         var subreddit: String?
         var title: String
         var thumbnail: URL?
@@ -45,7 +45,7 @@ struct Post: Decodable {
         var comments: Int
         
         enum CodingKeys: String, CodingKey {
-            case authorFullname = "author_fullname"
+            case author = "author"
             case subreddit, title, thumbnail, created, id
             case comments = "num_comments"
         }

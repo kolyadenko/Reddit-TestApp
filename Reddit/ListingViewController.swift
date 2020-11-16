@@ -61,29 +61,19 @@ extension ListingViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let item = viewModel.listingFetchedResultsController.object(at: indexPath)
         let cell = tableView.dequeueReusableCell(withIdentifier: "RedditPostTableViewCell", for: indexPath) as! RedditPostTableViewCell
-        cell.postedByTitle.text = item.authorFullname
-        cell.nameLabel.text = item.title
-        cell.commentsLabel.text = "\(item.comments) Comments"
-        cell.thumbnailImageView.image = nil
-        if let url = item.thumbnail {
-            if let imageAtURL = viewModel.image(at: url) {
-                cell.thumbnailImageView.image = imageAtURL
-            } else {
-                viewModel.downloadThumbnail(at: url, completionHandler: { image in
-                    self.imageDownloadDebouncer.call()
-                })
+        let item = viewModel.item(at: indexPath)
+        cell.render(model: item)
+        if item.shouldLoadImage {
+            viewModel.downloadImage(at: indexPath) {
+                self.imageDownloadDebouncer.call()
             }
         }
-        
         return cell
     }
     
     func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        let item = viewModel.listingFetchedResultsController.object(at: indexPath)
-        guard let url = item.thumbnail else { return }
-        viewModel.cancelThumbnailDownloading(at: url)
+        viewModel.cancelImageDownloading(at: indexPath)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -110,6 +100,21 @@ class RedditPostTableViewCell: UITableViewCell {
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var commentsLabel: UILabel!
     @IBOutlet weak var thumbnailImageView: UIImageView!
+    
+    struct Model {
+        var postedBy: String
+        var name: String
+        var commentsTitle: String
+        var image: UIImage?
+        var shouldLoadImage: Bool
+    }
+    
+    func render(model: Model) {
+        postedByTitle.text = model.postedBy
+        nameLabel.text = model.name
+        commentsLabel.text = model.commentsTitle
+        thumbnailImageView?.image = model.image
+    }
 }
 
 // MARK: Extensions

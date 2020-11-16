@@ -80,7 +80,7 @@ class RedditService: ListingService {
     private func configure(redditPost: RedditPost, usingPost post: Post, context: NSManagedObjectContext) {
         let postData = post.data
         redditPost.id = postData.id
-        redditPost.authorFullname = postData.authorFullname
+        redditPost.author = postData.author
         redditPost.comments = Int64(postData.comments)
         redditPost.created = postData.created
         redditPost.subreddit = postData.subreddit
