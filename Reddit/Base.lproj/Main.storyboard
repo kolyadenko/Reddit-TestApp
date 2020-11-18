@@ -11,7 +11,7 @@
         <!--Listing View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ListingViewController" customModule="Reddit" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController restorationIdentifier="ListingViewController" storyboardIdentifier="ListingViewController" id="BYZ-38-t0r" customClass="ListingViewController" customModule="Reddit" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -115,7 +115,7 @@
         <!--Detailed Image View Controller-->
         <scene sceneID="gfj-HH-hwZ">
             <objects>
-                <viewController id="Xye-xJ-bbi" customClass="DetailedImageViewController" customModule="Reddit" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="DetailedImageViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="Xye-xJ-bbi" customClass="DetailedImageViewController" customModule="Reddit" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="71u-XK-rgm">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -150,7 +150,7 @@
         <!--Navigation Controller-->
         <scene sceneID="82J-kQ-qHm">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="xDh-GG-ks4" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="StartController" automaticallyAdjustsScrollViewInsets="NO" useStoryboardIdentifierAsRestorationIdentifier="YES" id="xDh-GG-ks4" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="ffA-d8-6CQ">
                         <rect key="frame" x="0.0" y="44" width="414" height="44"/>

@@ -36,6 +36,7 @@ class ListingViewController: UIViewController, ErrorHandler {
     // MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        performFetch()
         fetchFresh()
     }
     
@@ -59,9 +60,11 @@ class ListingViewController: UIViewController, ErrorHandler {
     }
     
     func performFetch() {
-        try? self.viewModel.listingFetchedResultsController.performFetch()
-        self.tableView.refreshControl?.endRefreshing()
-        self.tableView.reloadData()
+        DispatchQueue.main.async {
+            try? self.viewModel.listingFetchedResultsController.performFetch()
+            self.tableView.refreshControl?.endRefreshing()
+            self.tableView.reloadData()
+        }
     }
     
     // MARK: Navigation
@@ -74,6 +77,24 @@ class ListingViewController: UIViewController, ErrorHandler {
         default:
             break
         }
+    }
+    
+    // MARK: Restoration
+    let offsetRestorationKey = "ListingViewController.TableViewOffset"
+
+    override func encodeRestorableState(with coder: NSCoder) {
+        if let view = tableView {
+            let offsetValue = NSValue(cgPoint: view.contentOffset)
+            coder.encode(offsetValue, forKey: offsetRestorationKey)
+        }
+        super.encodeRestorableState(with: coder)
+    }
+    
+    override func decodeRestorableState(with coder: NSCoder) {
+        if let offsetValue = coder.decodeObject(forKey: offsetRestorationKey) as? NSValue {
+            tableView.setContentOffset(offsetValue.cgPointValue, animated: false)
+        }
+        super.decodeRestorableState(with: coder)
     }
 }
 
