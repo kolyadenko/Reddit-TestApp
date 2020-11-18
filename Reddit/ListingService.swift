@@ -43,11 +43,13 @@ struct Post: Decodable {
         var thumbnail: URL?
         var created: Date
         var comments: Int
+        var destinationUrl: URL?
         
         enum CodingKeys: String, CodingKey {
             case author = "author"
             case subreddit, title, thumbnail, created, id
             case comments = "num_comments"
+            case destinationUrl = "url_overridden_by_dest"
         }
     }
 }

@@ -9,11 +9,20 @@ import UIKit
 import CoreData
 
 class ListingViewController: UIViewController, ErrorHandler {
+    // MARK: Props
+    var viewModel = ListingViewModel(service: RedditService())
+
     var items: [Post.PostData] = [] {
         didSet {
             tableView.reloadData()
         }
     }
+    
+    lazy var imageDownloadDebouncer = Debouncer(delay: 0.3) {
+        self.tableView.reloadData()
+    }
+    
+    // MARK: Outlets
     @IBOutlet weak var tableView: UITableView! {
         didSet {
             tableView.delegate = self
@@ -23,16 +32,14 @@ class ListingViewController: UIViewController, ErrorHandler {
             tableView.prefetchDataSource = self
         }
     }
-    var viewModel = ListingViewModel(service: RedditService())
-    lazy var imageDownloadDebouncer = Debouncer(delay: 0.3) {
-        self.tableView.reloadData()
-    }
 
+    // MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         fetchFresh()
     }
     
+    // MARK: User actions
     @objc
     func fetchFresh() {
         viewModel.fetchData(offset: 0) { [unowned self] (error) in
@@ -46,6 +53,18 @@ class ListingViewController: UIViewController, ErrorHandler {
             try? self.viewModel.listingFetchedResultsController.performFetch()
             self.tableView.refreshControl?.endRefreshing()
             self.tableView.reloadData()
+        }
+    }
+    
+    // MARK: Navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        switch segue.identifier {
+        case "showImage":
+            if let viewController = segue.destination as? DetailedImageViewController, let url = sender as? URL {
+                viewController.url = url
+            }
+        default:
+            break
         }
     }
 }
@@ -78,6 +97,17 @@ extension ListingViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let object = viewModel.listingFetchedResultsController.object(at: indexPath)
+        guard let url = object.destinationUrl else { return }
+        performSegue(withIdentifier: "showImage", sender: url)
+    }
+    
+    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
+        return viewModel.listingFetchedResultsController.object(at: indexPath).destinationUrl != nil
     }
 }
 
@@ -114,65 +144,6 @@ class RedditPostTableViewCell: UITableViewCell {
         nameLabel.text = model.name
         commentsLabel.text = model.commentsTitle
         thumbnailImageView?.image = model.image
-    }
-}
-
-// MARK: Extensions
-typealias NoArgumentsVoidBlock = () -> Void
-
-protocol ErrorHandler: class {
-    func handle(error: Error?, retryBlock: NoArgumentsVoidBlock?)
-}
-
-extension ErrorHandler {
-    func handle(error: Error?, retryBlock: NoArgumentsVoidBlock?) {
-        guard let error = error else { return }
-        guard let alert = UIAlertController.alert(withError: error, retryHandler: retryBlock, cancelHandler: nil) else { return }
-        (self as? UIViewController)?.present(alert, animated: true, completion: nil)
-    }
-}
-
-extension UIAlertController {
-    static func alert(from error: Error, withTitle title: String? = nil) -> UIAlertController {
-        let alert = UIAlertController(title: title ?? "Error", message: error.localizedDescription, preferredStyle: .alert)
-        return alert
-    }
-    
-    static func alert(withError error: Error?, title: String? = "Error", retryHandler: NoArgumentsVoidBlock?, cancelHandler: NoArgumentsVoidBlock?) -> UIAlertController? {
-        guard let error = error else { return nil }
-        let alert = UIAlertController.alert(from: error)
-        
-        if retryHandler != nil {
-            alert.addAction(UIAlertAction(title: "Retry", style: .default, handler: { (_) in
-                retryHandler?()
-            }))
-        }
-        
-        alert.addAction(UIAlertAction(title: retryHandler == nil ? "OK" : "Cancel", style: .cancel, handler: { (_) in
-            cancelHandler?()
-        }))
-        
-        return alert
-    }
-}
-
-class Debouncer {
-    var callback: NoArgumentsVoidBlock
-    var delay: Double
-    weak var timer: Timer?
-    
-    init(delay: Double, callback: @escaping NoArgumentsVoidBlock) {
-        self.delay = delay
-        self.callback = callback
-    }
-    
-    func call() {
-        timer?.invalidate()
-        let nextTimer = Timer.scheduledTimer(timeInterval: delay, target: self, selector: #selector(Debouncer.fireNow), userInfo: nil, repeats: false)
-        timer = nextTimer
-    }
-    
-    @objc func fireNow() {
-        self.callback()
+        thumbnailImageView.superview?.isHidden = model.image == nil
     }
 }

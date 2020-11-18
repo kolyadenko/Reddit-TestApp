@@ -86,6 +86,7 @@ class RedditService: ListingService {
         redditPost.subreddit = postData.subreddit
         redditPost.thumbnail = postData.thumbnail
         redditPost.title = postData.title
+        redditPost.destinationUrl = postData.destinationUrl
     }
 }
 

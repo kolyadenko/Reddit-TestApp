@@ -23,7 +23,7 @@ extension RedditPost {
     @NSManaged public var subreddit: String?
     @NSManaged public var thumbnail: URL?
     @NSManaged public var title: String?
-
+    @NSManaged public var destinationUrl: URL?
 }
 
 extension RedditPost : Identifiable {

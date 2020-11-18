@@ -16,6 +16,8 @@
 		5983DC922562D94200A01C50 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5983DC912562D94200A01C50 /* CoreDataManager.swift */; };
 		5983DC952562D96400A01C50 /* ListingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5983DC942562D96400A01C50 /* ListingService.swift */; };
 		5983DC992562E28000A01C50 /* ListingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5983DC982562E28000A01C50 /* ListingViewModel.swift */; };
+		59C8B2AD256323DD00DC8D3C /* DetailedImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C8B2AC256323DD00DC8D3C /* DetailedImageViewController.swift */; };
+		59C978EE25659AC200BE200F /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C978ED25659AC200BE200F /* Utility.swift */; };
 		59D18C322561A8F9000224AC /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 59D18C302561A8F9000224AC /* Model.xcdatamodeld */; };
 		59D18C432561AA43000224AC /* RedditPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D18C412561AA43000224AC /* RedditPost+CoreDataClass.swift */; };
 		59D18C442561AA43000224AC /* RedditPost+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D18C422561AA43000224AC /* RedditPost+CoreDataProperties.swift */; };
@@ -34,6 +36,8 @@
 		5983DC912562D94200A01C50 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
 		5983DC942562D96400A01C50 /* ListingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingService.swift; sourceTree = "<group>"; };
 		5983DC982562E28000A01C50 /* ListingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListingViewModel.swift; sourceTree = "<group>"; };
+		59C8B2AC256323DD00DC8D3C /* DetailedImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailedImageViewController.swift; sourceTree = "<group>"; };
+		59C978ED25659AC200BE200F /* Utility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		59D18C312561A8F9000224AC /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		59D18C412561AA43000224AC /* RedditPost+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RedditPost+CoreDataClass.swift"; path = "Reddit/CoreData/RedditPost+CoreDataClass.swift"; sourceTree = "<group>"; };
 		59D18C422561AA43000224AC /* RedditPost+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RedditPost+CoreDataProperties.swift"; path = "Reddit/CoreData/RedditPost+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -72,6 +76,7 @@
 		5954FC1B2559A6630011B346 /* Reddit */ = {
 			isa = PBXGroup;
 			children = (
+				59C978ED25659AC200BE200F /* Utility.swift */,
 				5954FC1C2559A6630011B346 /* AppDelegate.swift */,
 				5954FC1E2559A6630011B346 /* SceneDelegate.swift */,
 				5983DC972562E27400A01C50 /* ListingViewController */,
@@ -100,6 +105,7 @@
 			children = (
 				5954FC202559A6630011B346 /* ListingViewController.swift */,
 				5983DC982562E28000A01C50 /* ListingViewModel.swift */,
+				59C8B2AC256323DD00DC8D3C /* DetailedImageViewController.swift */,
 			);
 			name = ListingViewController;
 			sourceTree = "<group>";
@@ -174,6 +180,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59C8B2AD256323DD00DC8D3C /* DetailedImageViewController.swift in Sources */,
 				59D18C442561AA43000224AC /* RedditPost+CoreDataProperties.swift in Sources */,
 				5983DC952562D96400A01C50 /* ListingService.swift in Sources */,
 				5954FC212559A6630011B346 /* ListingViewController.swift in Sources */,
@@ -181,6 +188,7 @@
 				5954FC1D2559A6630011B346 /* AppDelegate.swift in Sources */,
 				59D18C322561A8F9000224AC /* Model.xcdatamodeld in Sources */,
 				5954FC1F2559A6630011B346 /* SceneDelegate.swift in Sources */,
+				59C978EE25659AC200BE200F /* Utility.swift in Sources */,
 				5983DC992562E28000A01C50 /* ListingViewModel.swift in Sources */,
 				5983DC922562D94200A01C50 /* CoreDataManager.swift in Sources */,
 				59E435A22559AAA1004EC8EA /* RedditService.swift in Sources */,

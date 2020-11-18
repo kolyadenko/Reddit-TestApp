@@ -25,16 +25,12 @@ class ListingViewModel {
     }()
     
     lazy var listingFetchedResultsController: NSFetchedResultsController<RedditPost> = {
-        // Initialize Fetch Request
         let fetchRequest: NSFetchRequest<RedditPost> = RedditPost.fetchRequest()
 
-        // Add Sort Descriptors
         let sortDescriptor = NSSortDescriptor(key: "created", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
 
-        // Initialize Fetched Results Controller
         let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.service.coreDataManager.persistentContainer.viewContext, sectionNameKeyPath: nil, cacheName: nil)
-        try? fetchedResultsController.performFetch()
         return fetchedResultsController
     }()
     
