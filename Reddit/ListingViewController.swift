@@ -39,6 +39,16 @@ class ListingViewController: UIViewController, ErrorHandler {
         fetchFresh()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+    
     // MARK: User actions
     @objc
     func fetchFresh() {
@@ -49,11 +59,9 @@ class ListingViewController: UIViewController, ErrorHandler {
     }
     
     func performFetch() {
-        DispatchQueue.main.async {
-            try? self.viewModel.listingFetchedResultsController.performFetch()
-            self.tableView.refreshControl?.endRefreshing()
-            self.tableView.reloadData()
-        }
+        try? self.viewModel.listingFetchedResultsController.performFetch()
+        self.tableView.refreshControl?.endRefreshing()
+        self.tableView.reloadData()
     }
     
     // MARK: Navigation
@@ -117,9 +125,7 @@ extension ListingViewController: UITableViewDataSourcePrefetching {
         let numberOfRows = self.tableView(tableView, numberOfRowsInSection: maxIndexPath.section)
         if numberOfRows - 1 == maxIndexPath.row {
             viewModel.fetchData(offset: maxIndexPath.row, completionHandler: { [unowned self] error in
-                DispatchQueue.main.async {
-                    self.performFetch()
-                }
+                self.performFetch()
             })
         }
     }

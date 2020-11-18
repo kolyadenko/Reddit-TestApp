@@ -13,9 +13,13 @@ class RedditService: ListingService {
     // MARK: Init
     private var observers: [NSObjectProtocol] = []
     init() {
-        observers.append(notificationCenter.addObserver(forName: NSNotification.Name.NSManagedObjectContextDidSave, object: nil, queue: nil) { (notification) in
+        observers.append(notificationCenter.addObserver(forName: NSNotification.Name.NSManagedObjectContextDidSave, object: nil, queue: nil) { (_) in
             self.listingChangesBlock?()
         })
+        
+        observers.append(notificationCenter.addObserver(forName: NSNotification.Name.NSManagedObjectContextObjectsDidChange, object: nil, queue: nil, using: { (_) in
+            self.listingChangesBlock?()
+        }))
     }
     
     deinit {
@@ -53,10 +57,11 @@ class RedditService: ListingService {
             listing?.data.children.forEach({
                 self.configure(redditPost: RedditPost(context: backgroundContext), usingPost: $0, context: backgroundContext)
             })
-            coreDataManager.saveContext(context: backgroundContext)
-            DispatchQueue.main.async {
-                completionHandler(error)
-            }
+            coreDataManager.saveContext(context: backgroundContext, completionHandler: {
+                DispatchQueue.main.async {
+                    completionHandler(error)
+                }
+            })
         }
         dataTask.resume()
         return dataTask

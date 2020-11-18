@@ -26,13 +26,14 @@ class CoreDataManager {
     }()
 
     // MARK: - Core Data Saving support
-    func saveContext(context: NSManagedObjectContext?) {
+    func saveContext(context: NSManagedObjectContext?, completionHandler: NoArgumentsVoidBlock?) {
         let context = context ?? persistentContainer.viewContext
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         if context.hasChanges {
             context.perform {
                 do {
                     try context.save()
+                    completionHandler?()
                 } catch {
                     let nserror = error as NSError
                     fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
